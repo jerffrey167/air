@@ -9,13 +9,13 @@ from tqdm import tqdm
 # --------------------------
 # 第二个接口的查询时间范围
 START_TIME = "2025-07-01 00:00:00"  # 开始时间
-END_TIME = "2025-08-17 20:00:00"  # 结束时间
+END_TIME = "2025-08-17 00:00:00"  # 结束时间
 
 # 输出文件路径
 statistics_file = "空调设备统计数据-202508151920.xlsx"
 
 # 请求间隔时间（秒）
-request_delay = 0.4
+request_delay = 0.2
 
 # 第二个接口每页请求数量
 page_size = 100
@@ -186,7 +186,7 @@ def get_device_statistics(device_list):
                     # 处理当前页的所有记录
                     for record in page_items:
                         # 拆分记录时间
-                        record_time = record.get("recordTime", "")
+                        record_time = record.get("updateTime", "")
                         if record_time:
                             # 拆分日期和时间
                             parts = record_time.split(" ", 1)
@@ -202,12 +202,21 @@ def get_device_statistics(device_list):
                             "位置": location,
                             "记录日期": date_part,
                             "记录时间": time_part,
-                            "温度": record.get("temperature"),
-                            "湿度": record.get("humidity"),
-                            "模式": record.get("mode"),
-                            "风速": record.get("windSpeed"),
-                            "开关状态": record.get("switchStatus"),
-                            "设定温度": record.get("settingTemperature")
+                            "运行时长": record.get("totalRunTime"),
+                            "室内温度": record.get("curIndoorTemperature"),
+                            "设定温度": record.get("targetTemperature"),
+                            "运行模式": {
+                                1: "自动",
+                                2: "制冷",
+                                3: "除湿",
+                                4: "通风",
+                                5: "制热"
+                            }.get(record.get("curSetAirMode"), record.get("curSetAirMode")),  # 补充闭合括号和逗号
+                            "电量": record.get("curTotalQuantity"),
+                            "电压": record.get("curVoltage"),
+                            "电流": record.get("curElectricity"),
+                            "功率": record.get("curPower"),
+                            "开关状态": "开机" if record.get("curIsRuning") else "关机",
                         }
                         all_statistics.append(stat_record)
 
